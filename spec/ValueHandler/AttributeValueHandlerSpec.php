@@ -15,6 +15,7 @@ use Sylius\Component\Product\Model\ProductOptionInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Sylius\Component\Resource\Translation\Provider\TranslationLocaleProviderInterface;
+use Webgriffe\SyliusAkeneoPlugin\AttributeHandler\MetricAttributeHandlerInterface;
 use Webgriffe\SyliusAkeneoPlugin\ValueHandlerInterface;
 
 class AttributeValueHandlerSpec extends ObjectBehavior
@@ -48,7 +49,8 @@ class AttributeValueHandlerSpec extends ObjectBehavior
         TranslationLocaleProviderInterface $localeProvider,
         ProductVariantInterface $productVariant,
         ProductInterface $product,
-        ProductOptionInterface $productOption
+        ProductOptionInterface $productOption,
+        MetricAttributeHandlerInterface $metricAttributeHandler
     ) {
         $checkboxProductAttribute->getCode()->willReturn(self::CHECKBOX_ATTRIBUTE_CODE);
         $textProductAttribute->getCode()->willReturn(self::TEXT_ATTRIBUTE_CODE);
@@ -86,7 +88,7 @@ class AttributeValueHandlerSpec extends ObjectBehavior
                 ],
             ]
         );
-        $this->beConstructedWith($attributeRepository, $factory, $localeProvider);
+        $this->beConstructedWith($attributeRepository, $factory, $localeProvider, $metricAttributeHandler);
     }
 
     function it_is_initializable()
@@ -182,7 +184,8 @@ class AttributeValueHandlerSpec extends ObjectBehavior
         ProductAttributeValueInterface $enAttributeValue,
         ProductAttributeValueInterface $deAttributeValue,
         FactoryInterface $factory,
-        ProductInterface $product
+        ProductInterface $product,
+        MetricAttributeHandlerInterface $metricAttributeHandler
     ) {
         $factory->createNew()->willReturn($enAttributeValue, $itAttributeValue, $deAttributeValue);
         $product->getAttributeByCodeAndLocale(Argument::type('string'), Argument::type('string'))->willReturn(null);
@@ -194,6 +197,7 @@ class AttributeValueHandlerSpec extends ObjectBehavior
                 'data' => 'Agape',
             ],
         ];
+        $metricAttributeHandler->supports('Agape')->willReturn(false);
         $this->handle($productVariant, self::TEXT_ATTRIBUTE_CODE, $value);
 
         $product->addAttribute($itAttributeValue)->shouldHaveBeenCalled();
@@ -213,7 +217,8 @@ class AttributeValueHandlerSpec extends ObjectBehavior
         ProductAttributeValueInterface $enAttributeValue,
         ProductAttributeValueInterface $deAttributeValue,
         FactoryInterface $factory,
-        ProductInterface $product
+        ProductInterface $product,
+        MetricAttributeHandlerInterface $metricAttributeHandler
     ) {
         $factory->createNew()->willReturn($enAttributeValue, $itAttributeValue);
         $product->getAttributeByCodeAndLocale(Argument::type('string'), Argument::type('string'))->willReturn(null);
@@ -230,6 +235,8 @@ class AttributeValueHandlerSpec extends ObjectBehavior
                 'data' => 'Legno',
             ],
         ];
+        $metricAttributeHandler->supports('Wood')->willReturn(false);
+        $metricAttributeHandler->supports('Legno')->willReturn(false);
         $this->handle($productVariant, self::TEXT_ATTRIBUTE_CODE, $value);
 
         $product->addAttribute($itAttributeValue)->shouldHaveBeenCalled();
@@ -533,7 +540,8 @@ class AttributeValueHandlerSpec extends ObjectBehavior
         ProductVariantInterface $productVariant,
         ProductAttributeValueInterface $itAttributeValue,
         FactoryInterface $factory,
-        ProductInterface $product
+        ProductInterface $product,
+        MetricAttributeHandlerInterface $metricAttributeHandler
     ) {
         $factory->createNew()->willReturn($itAttributeValue);
         $product->getAttributeByCodeAndLocale(self::TEXT_ATTRIBUTE_CODE, 'it_IT')->willReturn(null, $itAttributeValue);
@@ -554,6 +562,8 @@ class AttributeValueHandlerSpec extends ObjectBehavior
             ],
         ];
 
+        $metricAttributeHandler->supports('Agape')->willReturn(false);
+        $metricAttributeHandler->supports('Agape Plus')->willReturn(false);
         $this->handle($productVariant, self::TEXT_ATTRIBUTE_CODE, $firstValue);
         $this->handle($productVariant, self::TEXT_ATTRIBUTE_CODE, $secondValue);
 
@@ -563,4 +573,57 @@ class AttributeValueHandlerSpec extends ObjectBehavior
         $itAttributeValue->setValue('Agape')->shouldHaveBeenCalledOnce();
         $itAttributeValue->setValue('Agape Plus')->shouldHaveBeenCalledOnce();
     }
+
+    function it_creates_text_product_attribute_value_from_factory_with_the_given_locale_if_it_does_not_already_exists_and_if_it_is_metrical_attribute(
+        ProductVariantInterface $productVariant,
+        ProductAttributeValueInterface $itAttributeValue,
+        ProductAttributeValueInterface $enAttributeValue,
+        ProductAttributeValueInterface $deAttributeValue,
+        FactoryInterface $factory,
+        ProductInterface $product,
+        MetricAttributeHandlerInterface $metricAttributeHandler
+    ) {
+        $factory->createNew()->willReturn($enAttributeValue, $itAttributeValue);
+        $product->getAttributeByCodeAndLocale(Argument::type('string'), Argument::type('string'))->willReturn(null);
+
+        $value = [
+            [
+                'scope' => null,
+                'locale' => null,
+                'data' => [
+                    'amount' => 23,
+                    'unit' => 'INCH',
+                ],
+            ],
+        ];
+        $metricAttributeHandler->supports([
+            'amount' => 23,
+            'unit' => 'INCH',
+        ])->willReturn(true);
+        $metricAttributeHandler->getValue([
+            'amount' => 23,
+            'unit' => 'INCH',
+        ])->willReturn('23 INCH');
+        $this->handle($productVariant, self::TEXT_ATTRIBUTE_CODE, $value);
+
+        $product->addAttribute($itAttributeValue)->shouldHaveBeenCalled();
+        $product->addAttribute($enAttributeValue)->shouldHaveBeenCalled();
+        $itAttributeValue->setLocaleCode('it_IT')->shouldHaveBeenCalled();
+        $itAttributeValue->setValue('23 INCH')->shouldHaveBeenCalled();
+        $enAttributeValue->setLocaleCode('en_US')->shouldHaveBeenCalled();
+        $enAttributeValue->setValue('23 INCH')->shouldHaveBeenCalled();
+        $deAttributeValue->setLocaleCode('de_DE')->shouldNotHaveBeenCalled();
+        $deAttributeValue->setValue('23 INCH')->shouldNotHaveBeenCalled();
+    }
+
+//    array(1) {
+//        [0]=> array(3) {
+//            ["locale"]=> NULL
+//            ["scope"]=> NULL
+//            ["data"]=> array(2) {
+//                ["amount"]=> int(23)
+//                ["unit"]=> string(4) "INCH"
+//            }
+//        }
+//    }
 }

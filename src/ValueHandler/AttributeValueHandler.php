@@ -17,6 +17,7 @@ use Sylius\Component\Product\Model\ProductOptionInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Sylius\Component\Resource\Translation\Provider\TranslationLocaleProviderInterface;
+use Webgriffe\SyliusAkeneoPlugin\AttributeHandler\MetricAttributeHandlerInterface;
 use Webgriffe\SyliusAkeneoPlugin\ValueHandlerInterface;
 use Webmozart\Assert\Assert;
 
@@ -31,14 +32,19 @@ final class AttributeValueHandler implements ValueHandlerInterface
     /** @var TranslationLocaleProviderInterface */
     private $localeProvider;
 
+    /** @var MetricAttributeHandlerInterface */
+    private $metricValueHandler;
+
     public function __construct(
         RepositoryInterface $attributeRepository,
         FactoryInterface $factory,
-        TranslationLocaleProviderInterface $localeProvider
+        TranslationLocaleProviderInterface $localeProvider,
+        MetricAttributeHandlerInterface $metricValueHandler
     ) {
         $this->attributeRepository = $attributeRepository;
         $this->factory = $factory;
         $this->localeProvider = $localeProvider;
+        $this->metricValueHandler = $metricValueHandler;
     }
 
     /**
@@ -155,6 +161,9 @@ final class AttributeValueHandler implements ValueHandlerInterface
      */
     private function getAttributeValue(AttributeInterface $attribute, $value)
     {
+        if ($attribute->getType() === TextAttributeType::TYPE && $this->metricValueHandler->supports($value)) {
+            return $this->metricValueHandler->getValue($value);
+        }
         if ($attribute->getType() === SelectAttributeType::TYPE) {
             $value = (array) $value;
             $attributeConfiguration = $attribute->getConfiguration();

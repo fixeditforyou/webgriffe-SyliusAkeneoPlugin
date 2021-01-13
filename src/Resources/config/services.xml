@@ -151,5 +151,7 @@
             <argument type="service" id="sylius.repository.product_attribute"/>
             <tag name="webgriffe_sylius_akeneo.importer" />
         </service>
+
+        <service id="webgriffe_sylius_akeneo.attribute.metric_value_handler" class="Webgriffe\SyliusAkeneoPlugin\AttributeHandler\MetricAttributeHandler" />
     </services>
 </container>

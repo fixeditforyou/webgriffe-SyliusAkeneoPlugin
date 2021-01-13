@@ -31,10 +31,12 @@ final class MetricAttributeHandler implements MetricAttributeHandlerInterface
         if (!array_key_exists('amount', $value)) {
             throw new \LogicException('Amount key not found');
         }
+        $amount = (string) $value['amount'];
         if (!array_key_exists('unit', $value)) {
             throw new \LogicException('Unit key not found');
         }
+        $unit = (string) $value['unit'];
 
-        return $value['amount'] . ' ' . $value['unit'];
+        return $amount . ' ' . $unit;
     }
 }

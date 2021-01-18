@@ -9,6 +9,16 @@ use Webmozart\Assert\Assert;
 final class MetricAttributeHandler implements MetricAttributeHandlerInterface
 {
     /**
+     * @var UnitHandlerInterface
+     */
+    private $unitHandler;
+
+    public function __construct(UnitHandlerInterface $unitHandler)
+    {
+        $this->unitHandler = $unitHandler;
+    }
+
+    /**
      * @param mixed $value
      */
     public function supports($value): bool
@@ -31,12 +41,19 @@ final class MetricAttributeHandler implements MetricAttributeHandlerInterface
         if (!array_key_exists('amount', $value)) {
             throw new \LogicException('Amount key not found');
         }
-        $amount = (string) $value['amount'];
-        if (!array_key_exists('unit', $value)) {
-            throw new \LogicException('Unit key not found');
-        }
-        $unit = (string) $value['unit'];
 
-        return $amount . ' ' . $unit;
+        $amount = $this->getAmount($value);
+        $unit = $this->unitHandler->getUnit($value);
+
+        return $amount . $unit;
+    }
+
+    private function getAmount(array $value): string
+    {
+        if (!array_key_exists('amount', $value)) {
+            throw new \LogicException('Amount key not found');
+        }
+
+        return (string) $value['amount'];
     }
 }

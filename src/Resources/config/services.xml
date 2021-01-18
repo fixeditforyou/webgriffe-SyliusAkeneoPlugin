@@ -152,6 +152,10 @@
             <tag name="webgriffe_sylius_akeneo.importer" />
         </service>
 
-        <service id="webgriffe_sylius_akeneo.attribute.metric_value_handler" class="Webgriffe\SyliusAkeneoPlugin\AttributeHandler\MetricAttributeHandler" />
+        <service id="webgriffe_sylius_akeneo.attribute.metric_unit_handler" class="Webgriffe\SyliusAkeneoPlugin\AttributeHandler\UnitHandler"/>
+        <service id="webgriffe_sylius_akeneo.attribute.metric_value_handler" class="Webgriffe\SyliusAkeneoPlugin\AttributeHandler\MetricAttributeHandler">
+            <argument type="service" id="webgriffe_sylius_akeneo.attribute.metric_unit_handler"/>
+        </service>
+
     </services>
 </container>

@@ -70,6 +70,6 @@ class MetricAttributeHandlerSpec extends ObjectBehavior
         $this->getValue([
             'amount' => 23,
             'unit' => 'INCH',
-        ])->shouldReturn('23 INCH');
+        ])->shouldReturn('23 in');
     }
 }

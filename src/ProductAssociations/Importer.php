@@ -146,9 +146,9 @@ final class Importer implements ImporterInterface
     /**
      * {@inheritdoc}
      */
-    public function getIdentifiersModifiedSince(\DateTime $sinceDate): array
+    public function getIdentifiersModifiedSince(\DateTime $sinceDate, array $filters = []): array
     {
-        $products = $this->apiClient->findProductsModifiedSince($sinceDate);
+        $products = $this->apiClient->findProductsModifiedSince($sinceDate, $filters);
         $identifiers = [];
         foreach ($products as $product) {
             $identifiers[] = $product['identifier'];

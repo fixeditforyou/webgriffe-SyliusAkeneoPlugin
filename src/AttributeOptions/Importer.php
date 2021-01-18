@@ -52,7 +52,7 @@ final class Importer implements ImporterInterface
         $this->attributeRepository->add($attribute);
     }
 
-    public function getIdentifiersModifiedSince(\DateTime $sinceDate): array
+    public function getIdentifiersModifiedSince(\DateTime $sinceDate, array $filters = []): array
     {
         // It's not possible to fetch only attributes or attribute options modified since a given date with the Akeneo
         // REST API. So, the $sinceDate argument it's not used.

@@ -24,5 +24,5 @@ interface ImporterInterface
      *
      * @return string[]
      */
-    public function getIdentifiersModifiedSince(\DateTime $sinceDate): array;
+    public function getIdentifiersModifiedSince(\DateTime $sinceDate, array $filters = []): array;
 }

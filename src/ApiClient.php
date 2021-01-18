@@ -184,11 +184,17 @@ final class ApiClient implements ApiClientInterface, AttributeOptionsApiClientIn
      * @throws GuzzleException
      * @throws \HttpException
      */
-    public function findProductsModifiedSince(\DateTime $date): array
+    public function findProductsModifiedSince(\DateTime $date, array $filters = []): array
     {
+        $search = [
+            'updated' => [
+                ['operator' => '>', 'value' => $date->format('Y-m-d H:i:s')]
+            ],
+        ] + $filters;
+
         $endpoint = sprintf(
-            '/api/rest/v1/products?search={"updated":[{"operator":">","value":"%s"}]}&limit=20&page=1',
-            $date->format('Y-m-d H:i:s')
+            '/api/rest/v1/products?search=%s&limit=20&page=1',
+            json_encode($search)
         );
 
         return $this->traversePagination($this->authenticatedRequest($endpoint, 'GET', []));

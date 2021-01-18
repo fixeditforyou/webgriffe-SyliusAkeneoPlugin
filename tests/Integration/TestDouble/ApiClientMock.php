@@ -81,7 +81,7 @@ final class ApiClientMock implements ApiClientInterface, AttributeOptionsApiClie
         return new File($tempName);
     }
 
-    public function findProductsModifiedSince(\DateTime $date): array
+    public function findProductsModifiedSince(\DateTime $date, array $filters = []): array
     {
         $products = [];
         foreach ($this->productsUpdatedAt as $identifier => $updatedAt) {

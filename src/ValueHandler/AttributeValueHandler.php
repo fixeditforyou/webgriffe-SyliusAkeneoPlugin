@@ -161,24 +161,43 @@ final class AttributeValueHandler implements ValueHandlerInterface
      */
     private function getAttributeValue(AttributeInterface $attribute, $value)
     {
-        if ($attribute->getType() === TextAttributeType::TYPE && $this->metricValueHandler->supports($value)) {
-            return $this->metricValueHandler->getValue($value);
-        }
-        if ($attribute->getType() === SelectAttributeType::TYPE) {
-            $value = (array) $value;
-            $attributeConfiguration = $attribute->getConfiguration();
-            $possibleOptionsCodes = array_map('strval', array_keys($attributeConfiguration['choices']));
-            $invalid = array_diff($value, $possibleOptionsCodes);
+        $type = $attribute->getType();
 
-            if (!empty($invalid)) {
-                throw new \InvalidArgumentException(
-                    sprintf(
-                        'This select attribute can only save existing attribute options. ' .
-                        'Attribute option codes [%s] do not exist.',
-                        implode(', ', $invalid)
-                    )
-                );
-            }
+        switch ($type) {
+            case TextAttributeType::TYPE:
+                if ($this->metricValueHandler->supports($value)) {
+                    return $this->metricValueHandler->getValue($value);
+                }
+                break;
+
+            case CheckboxAttributeType::TYPE:
+                $value = (bool) $value;
+                break;
+
+            case IntegerAttributeType::TYPE:
+                $value = (int) $value;
+                break;
+
+            case SelectAttributeType::TYPE:
+                $value = (array) $value;
+                $attributeConfiguration = $attribute->getConfiguration();
+                $possibleOptionsCodes = array_map('strval', array_keys($attributeConfiguration['choices']));
+                $invalid = array_diff($value, $possibleOptionsCodes);
+
+                if (!empty($invalid)) {
+                    throw new \InvalidArgumentException(
+                        sprintf(
+                            'This select attribute can only save existing attribute options. ' .
+                            'Attribute option codes [%s] do not exist.',
+                            implode(', ', $invalid)
+                        )
+                    );
+                }
+                break;
+
+            case TextareaAttributeType::TYPE:
+            default:
+                break;
         }
 
         return $value;
